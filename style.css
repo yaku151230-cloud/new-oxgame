@@ -715,7 +715,7 @@ body {
         padding: 0;
         background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 50%, #667eea 100%);
         min-height: 100vh;
-        justify-content: flex-start;
+        justify-content: center; /* 中央寄せに変更 */
         gap: 0;
     }
     
@@ -738,16 +738,17 @@ body {
     
     .main-content {
         max-width: 100%;
-        padding: 4rem 1.5rem 2rem 1.5rem;
+        padding: 2rem 1.5rem; /* 上下の余白を調整 */
         width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 2rem;
+        gap: 3rem; /* タイトルとボタンの間隔を広げる */
+        justify-content: center; /* 中央寄せ */
     }
     
     .title {
-        font-size: 2.8rem;
+        font-size: 3rem; /* サイズを大きく */
         margin-bottom: 0;
         color: #333;
         background: none;
@@ -755,18 +756,22 @@ body {
         -webkit-text-fill-color: unset;
         background-clip: unset;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
     }
     
     .game-mode-buttons {
-        gap: 1.5rem;
+        gap: 2rem; /* ボタン間の間隔を広げる */
         width: 100%;
-        max-width: 280px;
+        max-width: 300px; /* ボタンの幅を少し広げる */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
     
     .play-btn {
         min-width: 100%;
-        padding: 1.2rem 2rem;
-        font-size: 1.2rem;
+        padding: 1.4rem 2rem; /* ボタンの高さを少し高く */
+        font-size: 1.3rem; /* フォントサイズを少し大きく */
         border-radius: 30px;
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         position: relative;
@@ -848,41 +853,53 @@ body {
     .cpu-selection-screen {
         background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 50%, #667eea 100%);
         padding: 0;
+        justify-content: center; /* 中央寄せに変更 */
     }
     
     .cpu-selection-content {
-        padding: 4rem 1.5rem 2rem 1.5rem;
+        padding: 2rem 1.5rem; /* 上下の余白を調整 */
         width: 100%;
         max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3rem; /* 間隔を広げる */
+        justify-content: center; /* 中央寄せ */
     }
     
     .cpu-title {
-        font-size: 2.5rem;
+        font-size: 2.8rem; /* サイズを大きく */
         color: #333;
         background: none;
         -webkit-background-clip: unset;
         -webkit-text-fill-color: unset;
         background-clip: unset;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
     }
     
     .cpu-subtitle {
         color: #555;
-        font-size: 1.1rem;
+        font-size: 1.2rem; /* サイズを少し大きく */
+        text-align: center;
     }
     
     .cpu-options {
-        gap: 1.2rem;
+        gap: 1.5rem; /* 間隔を広げる */
         margin-bottom: 2rem;
         width: 100%;
-        max-width: 280px;
+        max-width: 300px; /* 幅を少し広げる */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
     
     .cpu-option-btn {
         min-width: 100%;
-        padding: 1.2rem 2rem;
+        padding: 1.4rem 2rem; /* 高さを少し高く */
         border-radius: 30px;
         border: 2px solid rgba(255, 255, 255, 0.3);
+        font-size: 1.2rem; /* フォントサイズを少し大きく */
     }
     
     .cpu-first-btn {
@@ -901,6 +918,8 @@ body {
         background: linear-gradient(45deg, #667eea, #764ba2);
         border: 2px solid rgba(255, 255, 255, 0.3);
         min-width: 100%;
-        max-width: 280px;
+        max-width: 300px; /* 幅を少し広げる */
+        padding: 1.2rem 2rem;
+        font-size: 1.1rem;
     }
 }
