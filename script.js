@@ -1643,10 +1643,10 @@ class TicTacToe {
                         positions.forEach(pos => {
                             const cell = document.querySelector(`[data-index="${pos}"]`);
                             if (cell) {
-                                // 勝利ラインを目立つようにハイライト
-                                cell.style.background = 'linear-gradient(145deg, #ffd700, #ffed4e)';
-                                cell.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
-                                cell.style.border = '3px solid #ff6b35';
+                                // 勝利ラインを目立つようにハイライト（紫色系に統一）
+                                cell.style.background = 'linear-gradient(145deg, #667eea, #764ba2)';
+                                cell.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.8)';
+                                cell.style.border = '3px solid #764ba2';
                                 cell.style.transform = 'scale(1.05)';
                                 
                                 // 勝利アニメーション
