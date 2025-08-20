@@ -133,7 +133,7 @@ body {
 }
 
 .back-btn {
-    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫色系に統一 */
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24); /* 元の配色に戻す */
     color: white;
     border: none;
     padding: 0.6rem 1rem;
@@ -167,7 +167,7 @@ body {
 }
 
 .gravity-btn {
-    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫色系に統一 */
+    background: linear-gradient(45deg, #4ecdc4, #44a08d); /* 青緑系グラデーションに統一 */
     color: white;
     border: none;
     padding: 0.8rem 1.5rem;
@@ -206,7 +206,7 @@ body {
 .direction-btn {
     width: 50px;
     height: 50px;
-    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫色系に統一 */
+    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫系グラデーションに統一 */
     color: white;
     border: none;
     border-radius: 50%;
@@ -318,15 +318,15 @@ body {
 @keyframes winningPulse {
     0% {
         transform: scale(1.05);
-        box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); /* 紫色系に統一 */
+        box-shadow: 0 0 20px rgba(255, 107, 157, 0.8); /* ピンク系に統一 */
     }
     50% {
         transform: scale(1.1);
-        box-shadow: 0 0 30px rgba(118, 75, 162, 1); /* 紫色系に統一 */
+        box-shadow: 0 0 30px rgba(196, 69, 105, 1); /* ピンク系に統一 */
     }
     100% {
         transform: scale(1.05);
-        box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); /* 紫色系に統一 */
+        box-shadow: 0 0 20px rgba(255, 107, 157, 0.8); /* ピンク系に統一 */
     }
 }
 
@@ -376,7 +376,7 @@ body {
 }
 
 .reset-btn {
-    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫色系に統一 */
+    background: linear-gradient(45deg, #ff6b9d, #c44569); /* ピンク系グラデーションに統一 */
     color: white;
 }
 
