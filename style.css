@@ -713,9 +713,10 @@ body {
     /* スマホ用の縦長レイアウト最適化 */
     .main-screen {
         padding: 0;
-        background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 50%, #667eea 100%);
+        background: rgba(255, 255, 255, 0.95); /* 元の配色に戻す */
+        backdrop-filter: blur(10px);
         min-height: 100vh;
-        justify-content: center; /* 中央寄せに変更 */
+        justify-content: center; /* 中央寄せは維持 */
         gap: 0;
     }
     
@@ -731,9 +732,8 @@ body {
         height: 40px;
         font-size: 1rem;
         padding: 0.6rem 0.8rem;
-        background: rgba(118, 75, 162, 0.9);
-        backdrop-filter: blur(10px);
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        background: #764ba2; /* 元の配色に戻す */
+        border: none; /* 元のスタイルに戻す */
     }
     
     .main-content {
@@ -750,12 +750,11 @@ body {
     .title {
         font-size: 3rem; /* サイズを大きく */
         margin-bottom: 0;
-        color: #333;
-        background: none;
-        -webkit-background-clip: unset;
-        -webkit-text-fill-color: unset;
-        background-clip: unset;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(45deg, #667eea, #764ba2); /* 元のグラデーションに戻す */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
         text-align: center;
     }
     
@@ -794,13 +793,13 @@ body {
     }
     
     .play-2p-btn {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        background: linear-gradient(45deg, #ff6b9d, #c44569); /* 元の配色に戻す */
+        border: none; /* 元のスタイルに戻す */
     }
     
     .play-cpu-btn {
-        background: linear-gradient(45deg, #764ba2, #667eea);
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        background: linear-gradient(45deg, #4ecdc4, #44a08d); /* 元の配色に戻す */
+        border: none; /* 元のスタイルに戻す */
     }
     
     .game-screen, .cpu-selection-screen {
@@ -851,9 +850,10 @@ body {
     
     /* CPU選択画面も統一 */
     .cpu-selection-screen {
-        background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 50%, #667eea 100%);
+        background: rgba(255, 255, 255, 0.95); /* 元の配色に戻す */
+        backdrop-filter: blur(10px);
         padding: 0;
-        justify-content: center; /* 中央寄せに変更 */
+        justify-content: center; /* 中央寄せは維持 */
     }
     
     .cpu-selection-content {
@@ -869,17 +869,16 @@ body {
     
     .cpu-title {
         font-size: 2.8rem; /* サイズを大きく */
-        color: #333;
-        background: none;
-        -webkit-background-clip: unset;
-        -webkit-text-fill-color: unset;
-        background-clip: unset;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(45deg, #667eea, #764ba2); /* 元のグラデーションに戻す */
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: bold;
         text-align: center;
     }
     
     .cpu-subtitle {
-        color: #555;
+        color: #666; /* 元の配色に戻す */
         font-size: 1.2rem; /* サイズを少し大きく */
         text-align: center;
     }
@@ -898,25 +897,25 @@ body {
         min-width: 100%;
         padding: 1.4rem 2rem; /* 高さを少し高く */
         border-radius: 30px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        border: none; /* 元のスタイルに戻す */
         font-size: 1.2rem; /* フォントサイズを少し大きく */
     }
     
     .cpu-first-btn {
-        background: linear-gradient(45deg, #667eea, #764ba2);
+        background: linear-gradient(45deg, #4ecdc4, #44a08d); /* 元の配色に戻す */
     }
     
     .cpu-second-btn {
-        background: linear-gradient(45deg, #764ba2, #667eea);
+        background: linear-gradient(45deg, #ff6b9d, #c44569); /* 元の配色に戻す */
     }
     
     .cpu-random-btn {
-        background: linear-gradient(45deg, #667eea, #764ba2);
+        background: linear-gradient(45deg, #667eea, #764ba2); /* 元の配色に戻す */
     }
     
     .back-to-main-btn {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24); /* 元の配色に戻す */
+        border: none; /* 元のスタイルに戻す */
         min-width: 100%;
         max-width: 300px; /* 幅を少し広げる */
         padding: 1.2rem 2rem;
