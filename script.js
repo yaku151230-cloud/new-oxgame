@@ -1113,7 +1113,7 @@ class TicTacToe {
                 console.log(`${chainCount + 1}回目: 連鎖重力で空白を埋める（方向: ${this.lastGravityDirection}）`); // デバッグ用
                 
                 try {
-                    // 連鎖重力で空白を埋める（重力を使った方向と同じ）
+                // 連鎖重力で空白を埋める（重力を使った方向と同じ）
                     await this.fillEmptySpacesWithDirection(this.lastGravityDirection);
                     
                     // ボード表示を更新
@@ -1130,31 +1130,31 @@ class TicTacToe {
                         console.error('Board contains invalid values:', this.board);
                         return;
                     }
-                    
-                    // 最優先で四つ以上並びの判定（勝利/ドロー）
-                    const oWins = this.checkWinnerForPlayer('o');
-                    const xWins = this.checkWinnerForPlayer('x');
+                        
+                        // 最優先で四つ以上並びの判定（勝利/ドロー）
+                        const oWins = this.checkWinnerForPlayer('o');
+                        const xWins = this.checkWinnerForPlayer('x');
                     
                     console.log(`Chain gravity ${chainCount + 1} - Win check results - O: ${oWins}, X: ${xWins}`);
-                    
-                    if (oWins && xWins) {
-                        // 両方とも四つ以上並んでいる場合、ドロー
-                        console.log('連鎖重力中にドローを検出');
-                        this.endGame(true, '重力で両者とも四つ以上並んだため、引き分けです！');
-                        return;
-                    } else if (oWins) {
-                        console.log('連鎖重力中に〇の勝利を検出');
-                        this.endGame(false, '〇が重力で四つ以上並んで勝ちました！');
-                        return;
-                    } else if (xWins) {
-                        console.log('連鎖重力中に✕の勝利を検出');
-                        this.endGame(false, '✕が重力で四つ以上並んで勝ちました！');
-                        return;
-                    }
-                    
-                    // 四つ以上並びがない場合のみ、次の連鎖をチェック
-                    console.log(`${chainCount + 1}回目: 四つ以上並びなし、次の連鎖をチェック`);
-                    this.processChainGravity(chainCount + 1);
+                        
+                        if (oWins && xWins) {
+                            // 両方とも四つ以上並んでいる場合、ドロー
+                            console.log('連鎖重力中にドローを検出');
+                            this.endGame(true, '重力で両者とも四つ以上並んだため、引き分けです！');
+                            return;
+                        } else if (oWins) {
+                            console.log('連鎖重力中に〇の勝利を検出');
+                            this.endGame(false, '〇が重力で四つ以上並んで勝ちました！');
+                            return;
+                        } else if (xWins) {
+                            console.log('連鎖重力中に✕の勝利を検出');
+                            this.endGame(false, '✕が重力で四つ以上並んで勝ちました！');
+                            return;
+                        }
+                        
+                        // 四つ以上並びがない場合のみ、次の連鎖をチェック
+                        console.log(`${chainCount + 1}回目: 四つ以上並びなし、次の連鎖をチェック`);
+                        this.processChainGravity(chainCount + 1);
                     
                 } catch (error) {
                     console.error(`Chain gravity ${chainCount + 1} error:`, error);
@@ -1508,13 +1508,13 @@ class TicTacToe {
         indices.forEach(index => {
             const cell = document.querySelector(`[data-index="${index}"]`);
             if (cell) {
-                cell.classList.add('removing');
-                
-                setTimeout(() => {
-                    cell.textContent = '';
-                    cell.classList.remove('o', 'x', 'removing');
-                    cell.style.background = '';
-                    cell.style.boxShadow = '';
+            cell.classList.add('removing');
+            
+            setTimeout(() => {
+                cell.textContent = '';
+                cell.classList.remove('o', 'x', 'removing');
+                cell.style.background = '';
+                cell.style.boxShadow = '';
                 }, 600); // もっともっともっともっとゆっくりに調整
             }
         });
@@ -1643,10 +1643,10 @@ class TicTacToe {
                         positions.forEach(pos => {
                             const cell = document.querySelector(`[data-index="${pos}"]`);
                             if (cell) {
-                                // 勝利ラインを目立つようにハイライト（紫色系に統一）
-                                cell.style.background = 'linear-gradient(145deg, #667eea, #764ba2)';
-                                cell.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.8)';
-                                cell.style.border = '3px solid #764ba2';
+                                // 勝利ラインを目立つようにハイライト（ピンク系に統一）
+                                cell.style.background = 'linear-gradient(145deg, #ff6b9d, #c44569)';
+                                cell.style.boxShadow = '0 0 20px rgba(255, 107, 157, 0.8)';
+                                cell.style.border = '3px solid #c44569';
                                 cell.style.transform = 'scale(1.05)';
                                 
                                 // 勝利アニメーション
