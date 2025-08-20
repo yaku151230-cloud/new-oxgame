@@ -133,7 +133,7 @@ body {
 }
 
 .back-btn {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫色系に統一 */
     color: white;
     border: none;
     padding: 0.6rem 1rem;
@@ -167,7 +167,7 @@ body {
 }
 
 .gravity-btn {
-    background: linear-gradient(45deg, #ff6b9d, #c44569);
+    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫色系に統一 */
     color: white;
     border: none;
     padding: 0.8rem 1.5rem;
@@ -206,7 +206,7 @@ body {
 .direction-btn {
     width: 50px;
     height: 50px;
-    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫色系に統一 */
     color: white;
     border: none;
     border-radius: 50%;
@@ -318,15 +318,15 @@ body {
 @keyframes winningPulse {
     0% {
         transform: scale(1.05);
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); /* 紫色系に統一 */
     }
     50% {
         transform: scale(1.1);
-        box-shadow: 0 0 30px rgba(255, 215, 0, 1);
+        box-shadow: 0 0 30px rgba(118, 75, 162, 1); /* 紫色系に統一 */
     }
     100% {
         transform: scale(1.05);
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); /* 紫色系に統一 */
     }
 }
 
@@ -376,7 +376,7 @@ body {
 }
 
 .reset-btn {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    background: linear-gradient(45deg, #667eea, #764ba2); /* 紫色系に統一 */
     color: white;
 }
 
@@ -714,6 +714,19 @@ body {
         padding: 1.5rem;
     }
     
+    /* ヘルプボタンの位置をより上に調整 */
+    .header {
+        top: 1rem;
+        left: 1rem;
+    }
+    
+    .help-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+        padding: 0.7rem 1rem;
+    }
+    
     .title, .cpu-title {
         font-size: 2.5rem;
     }
@@ -728,9 +741,21 @@ body {
         min-width: 200px;
     }
     
+    /* ゲーム画面のレイアウトを縦長に最適化 */
+    .game-screen {
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .gravity-section {
+        margin-bottom: 2rem;
+        margin-top: 0;
+    }
+    
     .game-board {
         max-width: 90vw;
         gap: 6px;
+        margin-bottom: 1.5rem;
     }
     
     .cell {
@@ -749,6 +774,7 @@ body {
     .controls {
         flex-direction: column;
         align-items: center;
+        gap: 0.8rem;
     }
     
     .reset-btn, .new-game-btn {
@@ -760,5 +786,20 @@ body {
     .winner-modal .modal-content {
         margin: 1rem;
         padding: 1.5rem;
+    }
+    
+    /* 縦長レイアウトの最適化 */
+    .main-content {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+    
+    .game-mode-buttons {
+        gap: 1.2rem;
+    }
+    
+    .play-btn {
+        min-width: 160px;
+        padding: 1rem 2rem;
     }
 }
