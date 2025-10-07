@@ -977,7 +977,7 @@ body {
     }
     
     .cpu-selection-content {
-        padding: 10rem 10rem; /* 上下の余白を調整 */
+        padding: 1rem 1rem; /* 上下の余白を調整 */
         width: 100%;
         max-width: 100%;
         display: flex;
