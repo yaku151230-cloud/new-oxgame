@@ -1039,7 +1039,7 @@ body {
         border: none; /* 元のスタイルに戻す */
         width: 50px;
         height: 50px; /* 幅を少し広げる */
-        padding: 5rem 5rem;
+        padding: 1rem 1rem;
         font-size: 1.5rem;
         top: 1rem;
         right: 2rem;
