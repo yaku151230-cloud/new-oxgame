@@ -849,8 +849,8 @@ body {
         padding: 1.5rem;
         background: #764ba2; /* 元の配色に戻す */
         border: none; /* 元のスタイルに戻す */
-        top: 1rem;
-        left: 2rem;
+        top: 2rem;
+        left: 3rem;
         z-index: 10;
         
     }
