@@ -45,10 +45,10 @@ body {
     background: #764ba2;
     color: white;
     border: none;
-    padding: 0.8rem 1.2rem;
+    padding: 1.5rem;
     border-radius: 50%;
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -181,9 +181,9 @@ body {
     background: linear-gradient(45deg, #ff6b6b, #ee5a24); /* 元の配色に戻す */
     color: white;
     border: none;
-    padding: 1.5rem;
+    padding: 0.5rem;
     border-radius: 50%;
-    font-size: 0.9rem;
+    font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
