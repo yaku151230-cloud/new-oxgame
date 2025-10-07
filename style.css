@@ -837,7 +837,7 @@ body {
     
     .header {
         position: absolute;
-        top: 0.5rem; /* さらに上に */
+        top: 10rem; /* さらに上に */
         left: 1rem;
         z-index: 10;
     }
