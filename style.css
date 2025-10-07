@@ -926,7 +926,7 @@ body {
     
     .game-board {
         max-width: 90vw;
-        gap: 6px;
+        margin-top: 2rem;
     }
     
     .cell {
