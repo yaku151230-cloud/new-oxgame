@@ -11,26 +11,37 @@ class TicTacToe {
         this.cpuPlayer = 'x'; // CPUは✕として動作
         this.humanPlayer = 'o'; // プレイヤーは〇として動作
         
-                this.initializeGame();
+        this.hideWinnerModal(); // コンストラクタでモーダルを確実に非表示にする
+        this.initializeGame();
     }
 
     initializeGame() {
         this.bindEvents();
         this.updateStatus();
         this.updateGravityButton();
+        this.hideWinnerModal(); // ゲーム初期化時にもモーダルを確実に非表示にする
     }
     
     bindEvents() {
         // 画面切り替えのイベント
         document.getElementById('play-2p-btn').addEventListener('click', () => this.showGameScreen());
         document.getElementById('play-cpu-btn').addEventListener('click', () => this.showCpuSelectionScreen());
-        document.getElementById('back-to-main-btn').addEventListener('click', () => this.showMainScreen());
+        // document.getElementById('back-to-main-btn').addEventListener('click', () => this.showMainScreen()); // winner-modalに移動
         
         // CPU選択画面のイベント
         document.getElementById('cpu-first-btn').addEventListener('click', () => this.startCpuGame('human'));
         document.getElementById('cpu-second-btn').addEventListener('click', () => this.startCpuGame('cpu'));
         document.getElementById('cpu-random-btn').addEventListener('click', () => this.startCpuGame('random'));
         document.getElementById('back-to-main-from-cpu-btn').addEventListener('click', () => this.showMainScreen());
+        
+        // ゲーム画面ヘッダーの「メインに戻る」ボタンのイベント
+        const backToMainFromGameBtn = document.getElementById('back-to-main-from-game-btn');
+        if (backToMainFromGameBtn) {
+            backToMainFromGameBtn.addEventListener('click', () => {
+                console.log('ゲーム画面からメインに戻るボタンがクリックされました');
+                this.showMainScreen();
+            });
+        }
         
         // ヘルプモーダルのイベント
         document.getElementById('help-btn').addEventListener('click', () => this.showHelpModal());
@@ -63,17 +74,41 @@ class TicTacToe {
             resetBtn.addEventListener('click', () => this.resetGame());
         }
         
-        const playAgainBtn = document.getElementById('play-again-btn');
-        if (playAgainBtn) {
-            playAgainBtn.addEventListener('click', () => this.playAgain());
-        }
+        // もう一度プレイボタンのイベントリスナーはwinner-modal内で設定
+        // const playAgainBtn = document.getElementById('play-again-btn');
+        // if (playAgainBtn) {
+        //     playAgainBtn.addEventListener('click', () => this.playAgain());
+        // }
         
-        // モーダルの外側クリックで閉じる
+        // モーダルの外側クリックで閉じる (削除)
+        // const winnerModal = document.getElementById('winner-modal');
+        // if (winnerModal) {
+        //     winnerModal.addEventListener('click', (e) => {
+        //         // modal-content内でのクリックは無視
+        //         if (e.target.closest('.modal-content')) {
+        //             return;
+        //         }
+        //         this.hideWinnerModal(); // モーダル外クリックでモーダルを隠す
+        //         // メインに戻るボタンと同様の動作をさせる
+        //         this.showMainScreen();
+        //     });
+        // }
+        
+        // winner-modalのイベント委譲
         const winnerModal = document.getElementById('winner-modal');
         if (winnerModal) {
             winnerModal.addEventListener('click', (e) => {
-                if (e.target.id === 'winner-modal') {
+                console.log('Winner Modal Click Event - Target:', e.target, 'Target ID:', e.target.id); // 追加
+                const playAgainBtn = e.target.closest('#play-again-btn');
+                const backToMainBtn = e.target.closest('#back-to-main-btn');
+
+                if (playAgainBtn) {
+                    console.log('イベント委譲: もう一度プレイボタンがクリックされました');
+                    this.playAgain();
+                } else if (backToMainBtn) {
+                    console.log('イベント委譲: メインに戻るボタンがクリックされました');
                     this.hideWinnerModal();
+                    this.showMainScreen();
                 }
             });
         }
@@ -89,6 +124,7 @@ class TicTacToe {
     }
     
     showCpuSelectionScreen() {
+        this.hideWinnerModal(); // モーダルが残っている場合を考慮して非表示にする
         document.getElementById('main-screen').style.display = 'none';
         document.getElementById('cpu-selection-screen').style.display = 'flex';
     }
@@ -113,12 +149,14 @@ class TicTacToe {
             this.cpuPlayer = 'x';
             this.humanPlayer = 'o';
             isCpuFirst = true;
+            this.initialStartingPlayer = 'x'; // 初期先攻プレイヤーを記憶
             console.log('CPU goes first');
         } else {
             this.currentPlayer = 'o'; // プレイヤーが先手
             this.cpuPlayer = 'x';
             this.humanPlayer = 'o';
             isCpuFirst = false;
+            this.initialStartingPlayer = 'o'; // 初期先攻プレイヤーを記憶
             console.log('Player goes first');
         }
         
@@ -164,6 +202,7 @@ class TicTacToe {
     }
     
     showMainScreen() {
+        this.hideWinnerModal(); // モーダルが残っている場合を考慮して非表示にする
         document.getElementById('game-screen').style.display = 'none';
         document.getElementById('cpu-selection-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'flex';
@@ -180,7 +219,7 @@ class TicTacToe {
         document.getElementById('help-modal').style.display = 'none';
     }
     
-    handleCellClick(e) {
+    async handleCellClick(e) {
         if (!this.gameActive) return;
         
         // CPUモードでCPUの番の場合は無視
@@ -191,13 +230,23 @@ class TicTacToe {
         
         if (this.board[index] !== '') return;
         
-        this.makeMove(index);
+        await this.makeMove(index); // await を追加
         
-        // CPUの手の実行はmakeMove内で処理されるため、ここでは不要
+        // makeMove完了後、ゲームがアクティブな場合のみ手番を切り替える
+        if (this.gameActive) {
+            this.switchPlayer();
+            this.updateStatus();
+            this.updateGravityButton();
+
+            // CPUモードでCPUの手番になった場合、CPUの手を実行
+            if (this.isCpuMode && this.currentPlayer === this.cpuPlayer) {
+                setTimeout(() => this.makeCpuMove(), 500); // CPUの手は0.5秒遅延
+            }
+        }
     }
     
     // CPUの手を実行
-    makeCpuMove() {
+    async makeCpuMove() {
         console.log('=== makeCpuMove START ===');
         console.log('makeCpuMove called:', {
             gameActive: this.gameActive,
@@ -227,7 +276,16 @@ class TicTacToe {
             return;
         } else if (move !== -1) {
             console.log('CPU placing piece at:', move);
-            this.makeMove(move);
+            await this.makeMove(move);
+
+            // makeMove完了後、ゲームがアクティブな場合のみ手番を切り替える
+            if (this.gameActive) {
+                setTimeout(() => {
+                    this.switchPlayer();
+                    this.updateStatus();
+                    this.updateGravityButton();
+                }, 500); // 0.5秒の遅延
+            }
         } else {
             console.log('CPU no valid move found');
         }
@@ -248,13 +306,34 @@ class TicTacToe {
             return winningMove;
         }
         
-        // 1.5. 勝利できる手がない理由を詳しく確認
+        // 1.5. 勝利できる手がない理由を詳しく確認 (このログは維持)
         console.log('No direct winning move found, checking why...');
         const potentialWinningMoves = this.findPotentialWinningMoves(this.cpuPlayer);
         console.log('Potential winning moves (including self-destructive):', potentialWinningMoves);
         
-        // 2. 重力を使って防御する場合（条件2：通常の防御でCPU自身のコマが消える場合のみ）
-        // この条件を最優先でチェック（相手のリーチを防ぐため）
+        // 2. 通常の防御手を探す（安全な防御のみ） (元の4)
+        const blockingMove = this.findBlockingMove();
+        console.log('Blocking move check:', blockingMove);
+        if (blockingMove !== -1) {
+            console.log('Normal blocking move found, returning:', blockingMove);
+            return blockingMove;
+        }
+        
+        // 3. 戦略的なランダムな手を選択 (元の5)
+        const randomMove = this.getStrategicRandomMove();
+        console.log('Strategic random move selected, returning:', randomMove);
+        if (randomMove !== -1) {
+            return randomMove;
+        }
+        
+        // 4. 相手が重力で勝つのを防ぐ手を探す (元の2)
+        const blockOpponentGravityWinMove = this.findMoveToBlockOpponentGravityWin();
+        if (blockOpponentGravityWinMove !== -1) {
+            console.log('Block opponent gravity win move found, returning:', blockOpponentGravityWinMove);
+            return blockOpponentGravityWinMove;
+        }
+        
+        // 5. 重力を使って防御する場合（条件2：通常の防御でCPU自身のコマが消える場合のみ） (元の3)
         if (!this.gravityUsed[this.cpuPlayer]) {
             console.log('Checking if gravity is needed for defense (opponent reach + CPU piece loss)...');
             const defensiveGravity = this.findDefensiveGravityMove();
@@ -265,9 +344,11 @@ class TicTacToe {
                 this.useGravity(defensiveGravity);
                 return 'gravity';
             }
+        } else {
+            console.log('Gravity already used by CPU (for defensive purposes)');
         }
         
-        // 3. 重力を使って確実に勝利できる場合（条件1）
+        // 6. 重力を使って確実に勝利できる場合（条件1） (元の4)
         if (!this.gravityUsed[this.cpuPlayer]) {
             console.log('Checking if gravity can provide a winning move...');
             const winningGravity = this.findWinningGravityMove();
@@ -278,22 +359,12 @@ class TicTacToe {
                 return 'gravity';
             }
         } else {
-            console.log('Gravity already used by CPU');
+            console.log('Gravity already used by CPU (for winning purposes)');
         }
         
-        // 4. 通常の防御手を探す（安全な防御のみ）
-        const blockingMove = this.findBlockingMove();
-        console.log('Blocking move check:', blockingMove);
-        if (blockingMove !== -1) {
-            console.log('Normal blocking move found:', blockingMove);
-            return blockingMove;
-        }
-        
-        // 5. 戦略的なランダムな手を選択
-        const randomMove = this.getStrategicRandomMove();
-        console.log('Random move selected:', randomMove);
+        console.log('No valid moves found, returning -1.');
         console.log('=== getCpuMove END ===');
-        return randomMove;
+        return -1; // 有効な手が見つからない場合
     }
     
     // 勝利できる手を探す
@@ -527,7 +598,9 @@ class TicTacToe {
             console.error('Simulated board:', newBoard);
             
             // エラーの場合は元の盤面を返す
-            return [...currentBoard];
+            // この時点でエラーが発生しているため、ゲームの整合性を保つために例外をスローすることも検討
+            throw new Error("Gravity simulation resulted in piece count mismatch.");
+            // return [...currentBoard]; // 例外をスローするので不要
         }
         
         console.log('Simulated board after gravity:', newBoard);
@@ -556,62 +629,129 @@ class TicTacToe {
         console.log('=== getStrategicRandomMove START ===');
         console.log('getStrategicRandomMove called');
         const emptyCells = [];
-        const strategicCells = [];
-        const safeCells = [];
-        
-        for (let i = 0; i < 36; i++) {
-            if (this.board[i] === '') {
-                emptyCells.push(i);
-                
-                // CPU自身のコマが三つ揃って消える手は避ける
-                if (this.wouldCpuLosePieces(i)) {
-                    console.log('Avoiding move that would cause CPU pieces to disappear:', i);
-                    continue;
-                }
-                
-                // 戦略的な位置かチェック（既存のCPUコマの隣）
-                if (this.isStrategicPosition(i)) {
-                    strategicCells.push(i);
-                }
-                
-                // 安全な手（CPU自身のコマが消えない）
-                safeCells.push(i);
-            }
-        }
-        
-        console.log('Empty cells:', emptyCells.length, 'Strategic cells:', strategicCells.length, 'Safe cells:', safeCells.length);
-        
-        // 戦略的な位置がある場合はそこから選択
-        if (strategicCells.length > 0) {
-            const selected = strategicCells[Math.floor(Math.random() * strategicCells.length)];
-            console.log('Selected strategic position:', selected);
-            console.log('=== getStrategicRandomMove END (strategic) ===');
-            return selected;
-        }
-        
-        // 戦略的な位置がない場合は安全な手から選択
-        if (safeCells.length > 0) {
-            const selected = safeCells[Math.floor(Math.random() * safeCells.length)];
-            console.log('Selected safe position:', selected);
-            console.log('=== getStrategicRandomMove END (safe) ===');
-            return selected;
-        }
-        
-        // 安全な手がない場合は通常のランダム選択（緊急時）
-        if (emptyCells.length > 0) {
-            const selected = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            console.log('Selected random position (emergency):', selected);
-            console.log('=== getStrategicRandomMove END (emergency) ===');
-            return selected;
-        }
-        
-        console.log('No valid moves found');
-        console.log('=== getStrategicRandomMove END (no moves) ===');
-        return -1;
+        const highlyStrategicCells = []; // 自分のコマと相手のコマの両方に隣接
+        const myStrategicCells = [];     // 自分のコマにのみ隣接
+        const opponentStrategicCells = []; // 相手のコマにのみ隣接
+        const otherSafeCells = [];       // その他の安全なセル
+        const centralCells = [];           // 中央16マス
+        const centralMyStrategicCells = []; // 中央16マスかつ自分のコマに隣接
+        const centralOpponentStrategicCells = []; // 中央16マスかつ相手のコマに隣接
+         
+         for (let i = 0; i < 36; i++) {
+             if (this.board[i] === '') {
+                 emptyCells.push(i);
+                 
+                 // CPU自身のコマが三つ揃って消える手は避ける
+                 if (this.wouldCpuLosePieces(i)) {
+                     console.log('Avoiding move that would cause CPU pieces to disappear:', i);
+                     continue;
+                 }
+                 
+                 const isNearMe = this.isNearPlayer(i, this.cpuPlayer);
+                 const isNearOpponent = this.isNearPlayer(i, this.humanPlayer);
+                 
+                 const row = Math.floor(i / 6);
+                 const col = i % 6;
+                 const isCentral = (row >= 1 && row <= 4 && col >= 1 && col <= 4); // 中央16マス (1-4行, 1-4列)
+                 
+                 if (isCentral) {
+                     centralCells.push(i);
+                     if (isNearMe) {
+                         centralMyStrategicCells.push(i);
+                     }
+                     if (isNearOpponent) {
+                         centralOpponentStrategicCells.push(i);
+                     }
+                 }
+                 
+                 if (isNearMe && isNearOpponent) {
+                     highlyStrategicCells.push(i);
+                 } else if (isNearMe) {
+                     myStrategicCells.push(i);
+                 } else if (isNearOpponent) {
+                     opponentStrategicCells.push(i);
+                 } else {
+                     otherSafeCells.push(i);
+                 }
+             }
+         }
+         
+         console.log('Empty cells:', emptyCells.length, 'Highly strategic:', highlyStrategicCells.length, 'My strategic:', myStrategicCells.length, 'Opponent strategic:', opponentStrategicCells.length, 'Other safe:', otherSafeCells.length, 'Central cells:', centralCells.length, 'Central my strategic:', centralMyStrategicCells.length, 'Central opponent strategic:', centralOpponentStrategicCells.length);
+         
+         // 新しい優先順位:
+         // 1. 中央16マスかつ自分のコマに隣接
+         // 2. 中央16マスかつ相手のコマに隣接 (自分のコマには隣接しないもの)
+         // 3. その他の戦略的なセル (中央以外で自分のコマに隣接)
+         // 4. その他の戦略的なセル (中央以外で相手のコマに隣接)
+         // 5. 中央のその他の安全なセル
+         // 6. その他の安全なセル
+         // 7. 残りの空いているセル
+         
+         // 1. 中央16マスかつ自分のコマに隣接 (centralMyStrategicCells)
+         if (centralMyStrategicCells.length > 0) {
+             const selected = centralMyStrategicCells[Math.floor(Math.random() * centralMyStrategicCells.length)];
+             console.log('Selected central and my strategic position:', selected);
+             return selected;
+         }
+         
+         // 2. 中央16マスかつ相手のコマに隣接 (centralOpponentStrategicCells - 自分のコマに隣接しないもの)
+         const purelyCentralOpponentStrategic = centralOpponentStrategicCells.filter(cell => !myStrategicCells.includes(cell) && !highlyStrategicCells.includes(cell));
+         if (purelyCentralOpponentStrategic.length > 0) {
+             const selected = purelyCentralOpponentStrategic[Math.floor(Math.random() * purelyCentralOpponentStrategic.length)];
+             console.log('Selected central and purely opponent strategic position:', selected);
+             return selected;
+         }
+         
+         // 3. その他の戦略的なセル (中央以外で自分のコマに隣接 - highlyStrategicCells も含む)
+         const nonCentralMyStrategicOrHighly = myStrategicCells.filter(cell => !centralCells.includes(cell))
+                                                 .concat(highlyStrategicCells.filter(cell => !centralCells.includes(cell)));
+         if (nonCentralMyStrategicOrHighly.length > 0) {
+             const selected = nonCentralMyStrategicOrHighly[Math.floor(Math.random() * nonCentralMyStrategicOrHighly.length)];
+             console.log('Selected non-central my strategic or highly strategic position:', selected);
+             return selected;
+         }
+         
+         // 4. その他の戦略的なセル (中央以外で相手のコマに隣接 - 自分のコマには隣接しないもの)
+         const nonCentralPurelyOpponentStrategic = opponentStrategicCells.filter(cell => !centralCells.includes(cell) && !this.isNearPlayer(cell, this.cpuPlayer));
+         if (nonCentralPurelyOpponentStrategic.length > 0) {
+             const selected = nonCentralPurelyOpponentStrategic[Math.floor(Math.random() * nonCentralPurelyOpponentStrategic.length)];
+             console.log('Selected non-central purely opponent strategic position:', selected);
+             return selected;
+         }
+         
+         // 5. 中央のその他の安全なセル
+         const remainingCentralSafeCells = centralCells.filter(cell => 
+             !centralMyStrategicCells.includes(cell) && 
+             !centralOpponentStrategicCells.includes(cell) && // 中央の相手戦略も除外
+             !highlyStrategicCells.includes(cell) // 中央の両隣接も除外
+         );
+         if (remainingCentralSafeCells.length > 0) {
+             const selected = remainingCentralSafeCells[Math.floor(Math.random() * remainingCentralSafeCells.length)];
+             console.log('Selected remaining central safe position:', selected);
+             return selected;
+         }
+         
+         // 6. その他の安全なセル (中央16マス以外で、自分のコマにも相手のコマにも隣接しないもの)
+         const trulyOtherSafeCells = otherSafeCells.filter(cell => !centralCells.includes(cell));
+         if (trulyOtherSafeCells.length > 0) {
+             const selected = trulyOtherSafeCells[Math.floor(Math.random() * trulyOtherSafeCells.length)];
+             console.log('Selected truly other safe position:', selected);
+             return selected;
+         }
+         
+         // 7. 残りの空いているセル（wouldLosePiecesでフィルタリング済み）
+         if (emptyCells.length > 0) {
+             const selected = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+             console.log('Selected random position (emergency, filtered by wouldLosePieces):', selected);
+             return selected;
+         }
+         
+         console.log('No valid moves found at all for strategic random placement.');
+         return -1;
     }
     
     // 戦略的な位置かチェック
-    isStrategicPosition(index) {
+    isNearPlayer(index, player) {
         const row = Math.floor(index / 6);
         const col = index % 6;
         
@@ -628,8 +768,8 @@ class TicTacToe {
             
             if (newRow >= 0 && newRow < 6 && newCol >= 0 && newCol < 6) {
                 const neighborIndex = newRow * 6 + newCol;
-                if (this.board[neighborIndex] === this.cpuPlayer) {
-                    console.log(`Strategic position found at ${index}, neighbor at ${neighborIndex} has CPU piece`);
+                if (this.board[neighborIndex] === player) {
+                    console.log(`Position ${index} is near ${player} piece at ${neighborIndex}`);
                     return true;
                 }
             }
@@ -638,7 +778,9 @@ class TicTacToe {
         return false;
     }
     
-    makeMove(index) {
+    async makeMove(index) { // asyncを追加
+        console.log(`=== MAKE MOVE START for ${this.currentPlayer} at index ${index} ===`); // デバッグログ追加
+        console.log('Board before makeMove:', [...this.board]); // デバッグログ追加
         this.board[index] = this.currentPlayer;
         this.updateCell(index);
         
@@ -649,22 +791,15 @@ class TicTacToe {
         }
         
         // 三つ並んだ場合の処理
-        this.checkAndRemoveThrees();
+        await this.checkAndRemoveThrees(); // awaitを追加
         
         // 引き分け判定
         if (this.checkDraw()) {
             this.endGame(true);
             return;
         }
-        
-        this.switchPlayer();
-        this.updateStatus();
-        this.updateGravityButton();
-        
-        // CPUモードでCPUの手番になった場合、CPUの手を実行
-        if (this.isCpuMode && this.currentPlayer === this.cpuPlayer && this.gameActive) {
-            setTimeout(() => this.makeCpuMove(), 500);
-        }
+
+        setTimeout(() => { /* do nothing */ }, 500); // 0.5秒の遅延
     }
     
     showGravityDirections() {
@@ -697,20 +832,14 @@ class TicTacToe {
         // 重力を適用（完了を待つ）
         await this.applyGravity(direction);
         
-        // 手番を変更
-        this.switchPlayer();
-        this.updateStatus();
-        this.updateGravityButton();
-        
-        // CPUモードでCPUの手番になった場合、CPUの手を実行
-        if (this.isCpuMode && this.currentPlayer === this.cpuPlayer && this.gameActive) {
-            setTimeout(() => this.makeCpuMove(), 500);
-        }
+        // applyGravity内でafterGravityCheckが呼び出され、そこで手番変更とCPUの手実行を処理する
+        // そのため、ここでは何もしない
     }
     
     async applyGravity(direction) {
-        console.log(`重力適用開始: ${direction}方向`); // デバッグ用
-        console.log('重力適用前のボード:', [...this.board]);
+        this.showLoadingIndicator(); // ローディングインジケーターを表示
+        console.log(`=== APPLY GRAVITY START: ${direction}方向 ===`); // デバッグログ追加
+        console.log('重力適用前のボード:', [...this.board]); // デバッグ用
         
         // 現在の盤面をコピー
         const currentBoard = [...this.board];
@@ -730,43 +859,49 @@ class TicTacToe {
                 console.log(`Column ${col}: starting at writeIndex ${writeIndex}`);
                 for (let row = 0; row < 6; row++) {
                     const readIndex = row * 6 + col;
+                    console.log(`  ReadIndex: ${readIndex}, Value: ${currentBoard[readIndex]}`); // 追加
                     if (currentBoard[readIndex] !== '') {
                         newBoard[writeIndex] = currentBoard[readIndex];
-                        console.log(`Moving piece from ${readIndex} to ${writeIndex}: ${currentBoard[readIndex]}`);
+                        console.log(`  Moving piece from ${readIndex} to ${writeIndex}: ${currentBoard[readIndex]}`);
                         if (readIndex !== writeIndex) {
                             moves.push({
                                 from: readIndex,
                                 to: writeIndex,
                                 value: currentBoard[readIndex]
                             });
+                            console.log(`  Added move: from ${readIndex} to ${writeIndex}, value ${currentBoard[readIndex]}`); // 追加
                         }
                         writeIndex += 6;
-                        console.log(`Next writeIndex: ${writeIndex}`);
+                        console.log(`  Next writeIndex: ${writeIndex}`);
                     }
                 }
+                console.log(`Processed column ${col}. Current newBoard:`, [...newBoard]); // 追加
             }
         } else if (direction === 'down') {
             // 下方向の重力（下から詰める）
             console.log('下方向の重力を適用');
             for (let col = 0; col < 6; col++) {
-                let writeIndex = 30 + col; // 一番下の行
+                let writeIndex = 30 + col;
                 console.log(`Column ${col}: starting at writeIndex ${writeIndex}`);
                 for (let row = 5; row >= 0; row--) {
                     const readIndex = row * 6 + col;
+                    console.log(`  ReadIndex: ${readIndex}, Value: ${currentBoard[readIndex]}`); // 追加
                     if (currentBoard[readIndex] !== '') {
                         newBoard[writeIndex] = currentBoard[readIndex];
-                        console.log(`Moving piece from ${readIndex} to ${writeIndex}: ${currentBoard[readIndex]}`);
+                        console.log(`  Moving piece from ${readIndex} to ${writeIndex}: ${currentBoard[readIndex]}`);
                         if (readIndex !== writeIndex) {
                             moves.push({
                                 from: readIndex,
                                 to: writeIndex,
                                 value: currentBoard[readIndex]
                             });
+                            console.log(`  Added move: from ${readIndex} to ${writeIndex}, value ${currentBoard[readIndex]}`); // 追加
                         }
                         writeIndex -= 6;
-                        console.log(`Next writeIndex: ${writeIndex}`);
+                        console.log(`  Next writeIndex: ${writeIndex}`);
                     }
                 }
+                console.log(`Processed column ${col}. Current newBoard:`, [...newBoard]); // 追加
             }
         } else if (direction === 'left') {
             // 左方向の重力（左から詰める）
@@ -776,43 +911,49 @@ class TicTacToe {
                 console.log(`Row ${row}: starting at writeIndex ${writeIndex}`);
                 for (let col = 0; col < 6; col++) {
                     const readIndex = row * 6 + col;
+                    console.log(`  ReadIndex: ${readIndex}, Value: ${currentBoard[readIndex]}`); // 追加
                     if (currentBoard[readIndex] !== '') {
                         newBoard[writeIndex] = currentBoard[readIndex];
-                        console.log(`Moving piece from ${readIndex} to ${writeIndex}: ${currentBoard[readIndex]}`);
+                        console.log(`  Moving piece from ${readIndex} to ${writeIndex}: ${currentBoard[readIndex]}`);
                         if (readIndex !== writeIndex) {
                             moves.push({
                                 from: readIndex,
                                 to: writeIndex,
                                 value: currentBoard[readIndex]
                             });
+                            console.log(`  Added move: from ${readIndex} to ${writeIndex}, value ${currentBoard[readIndex]}`); // 追加
                         }
                         writeIndex++;
-                        console.log(`Next writeIndex: ${writeIndex}`);
+                        console.log(`  Next writeIndex: ${writeIndex}`);
                     }
                 }
+                console.log(`Processed row ${row}. Current newBoard:`, [...newBoard]); // 追加
             }
         } else if (direction === 'right') {
             // 右方向の重力（右から詰める）
             console.log('右方向の重力を適用');
             for (let row = 0; row < 6; row++) {
-                let writeIndex = row * 6 + 5; // 一番右の列
+                let writeIndex = row * 6 + 5;
                 console.log(`Row ${row}: starting at writeIndex ${writeIndex}`);
                 for (let col = 5; col >= 0; col--) {
                     const readIndex = row * 6 + col;
+                    console.log(`  ReadIndex: ${readIndex}, Value: ${currentBoard[readIndex]}`); // 追加
                     if (currentBoard[readIndex] !== '') {
                         newBoard[writeIndex] = currentBoard[readIndex];
-                        console.log(`Moving piece from ${readIndex} to ${writeIndex}: ${currentBoard[readIndex]}`);
+                        console.log(`  Moving piece from ${readIndex} to ${writeIndex}: ${currentBoard[readIndex]}`);
                         if (readIndex !== writeIndex) {
                             moves.push({
                                 from: readIndex,
                                 to: writeIndex,
                                 value: currentBoard[readIndex]
                             });
+                            console.log(`  Added move: from ${readIndex} to ${writeIndex}, value ${currentBoard[readIndex]}`); // 追加
                         }
                         writeIndex--;
-                        console.log(`Next writeIndex: ${writeIndex}`);
+                        console.log(`  Next writeIndex: ${writeIndex}`);
                     }
                 }
+                console.log(`Processed row ${row}. Current newBoard:`, [...newBoard]); // 追加
             }
         }
         
@@ -864,9 +1005,8 @@ class TicTacToe {
         }
         
         // 重力後の判定処理を開始
-        setTimeout(() => {
-            this.afterGravityCheck();
-        }, 500); // もっともっともっともっとゆっくりに調整
+        await this.afterGravityCheck(); // setTimeoutを削除し、直接awaitで呼び出す
+        console.log(`=== APPLY GRAVITY END: ${direction}方向 ===`); // デバッグログ追加
     }
     
     async animateGravityMoves(moves) {
@@ -887,7 +1027,7 @@ class TicTacToe {
             
             // 次のステップまで少し待つ
             if (step < maxDistance) {
-                await this.sleep(80); // もっともっともっともっとゆっくりに調整
+                await this.sleep(120); // 連鎖重力アニメーション速度を遅くする
             }
         }
         
@@ -944,7 +1084,7 @@ class TicTacToe {
                     }
                 });
                 resolve();
-            }, 100); // もっともっともっともっとゆっくりに調整
+            }, 100); // 元のアニメーション速度に戻す
         });
     }
     
@@ -990,8 +1130,10 @@ class TicTacToe {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
     
-    updateBoardDisplay() {
+    async updateBoardDisplay() {
         const cells = document.querySelectorAll('.cell');
+        const animationPromises = [];
+
         cells.forEach((cell, index) => {
             const value = this.board[index];
             if (value !== '') {
@@ -999,9 +1141,12 @@ class TicTacToe {
                 cell.classList.remove('o', 'x');
                 cell.classList.add(value);
                 cell.classList.add('moving');
-                setTimeout(() => {
-                    cell.classList.remove('moving');
-                }, 400); // もっともっともっともっとゆっくりに調整
+                animationPromises.push(new Promise(resolve => {
+                    setTimeout(() => {
+                        cell.classList.remove('moving');
+                        resolve();
+                    }, 400); // もっともっともっともっとゆっくりに調整
+                }));
             } else {
                 cell.textContent = '';
                 cell.classList.remove('o', 'x', 'moving');
@@ -1009,9 +1154,11 @@ class TicTacToe {
                 cell.style.boxShadow = '';
             }
         });
+
+        await Promise.all(animationPromises);
     }
     
-    afterGravityCheck() {
+    async afterGravityCheck() { // asyncを追加
         console.log('=== AFTER GRAVITY CHECK ===');
         console.log('Current board state:', [...this.board]);
         
@@ -1029,22 +1176,47 @@ class TicTacToe {
         if (oWins && xWins) {
             // 両方とも四つ以上並んでいる場合、ドロー
             console.log('Both players win after gravity - DRAW');
-            this.endGame(true, '重力で両者とも四つ以上並んだため、引き分けです！');
+            this.hideLoadingIndicator(); // ローディングインジケーターを非表示
+            this.endGame(true);
+            this.gameActive = false; // ゲームを終了
             return;
         } else if (oWins) {
             console.log('O wins after gravity');
-            this.endGame(false, '〇が重力で四つ以上並んで勝ちました！');
+            // 重力では手番側が負ける可能性があるため、実際の勝者に基づき明示的にメッセージを表示
+            // ローディングはここで消さず、endGame内で即時表示の直前に消す
+            this.endGame(false, '〇が勝ちました！', true);
+            this.gameActive = false; // ゲームを終了
             return;
         } else if (xWins) {
             console.log('X wins after gravity');
-            this.endGame(false, '✕が重力で四つ以上並んで勝ちました！');
+            // 重力では手番側が負ける可能性があるため、実際の勝者に基づき明示的にメッセージを表示
+            // ローディングはここで消さず、endGame内で即時表示の直前に消す
+            this.endGame(false, '✕が勝ちました！', true);
+            this.gameActive = false; // ゲームを終了
             return;
         }
         
         console.log('No immediate win after gravity, checking for three-in-a-row removals');
         
         // 三つ並びの処理（連鎖重力）
-        this.checkAndRemoveThreesWithChainGravity();
+        await this.checkAndRemoveThreesWithChainGravity(); // awaitを追加
+
+        this.hideLoadingIndicator(); // ローディングインジケーターを非表示
+
+        // 重力による全ての処理が完了した後、ゲームがアクティブな場合のみ手番を切り替える
+        // 1秒の遅延を入れてからターン切り替えとCPUの手を実行
+        if (this.gameActive) {
+            setTimeout(() => {
+                this.switchPlayer();
+                this.updateStatus();
+                this.updateGravityButton();
+
+                // CPUモードでCPUの手番になった場合、CPUの手を実行
+                if (this.isCpuMode && this.currentPlayer === this.cpuPlayer) {
+                    setTimeout(() => this.makeCpuMove(), 500); // CPUの手はさらに0.5秒遅延
+                }
+            }, 1000); // 1秒の遅延
+        }
     }
     
     checkWinnerForPlayer(player) {
@@ -1062,6 +1234,7 @@ class TicTacToe {
                 
                 for (let [dx, dy] of directions) {
                     let count = 1;
+                    let positions = [index]; // positionsを常に定義
                     let x = col + dx;
                     let y = row + dy;
                     
@@ -1070,8 +1243,24 @@ class TicTacToe {
                         const nextIndex = y * 6 + x;
                         if (this.board[nextIndex] === player) {
                             count++;
+                            positions.push(nextIndex);
                             x += dx;
                             y += dy;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    // 負方向にカウント
+                    x = col - dx;
+                    y = row - dy;
+                    while (x >= 0 && x < 6 && y >= 0 && y < 6) {
+                        const nextIndex = y * 6 + x;
+                        if (this.board[nextIndex] === player) {
+                            count++;
+                            positions.push(nextIndex);
+                            x -= dx;
+                            y -= dy;
                         } else {
                             break;
                         }
@@ -1087,13 +1276,13 @@ class TicTacToe {
         return false;
     }
     
-    checkAndRemoveThreesWithChainGravity() {
+    async checkAndRemoveThreesWithChainGravity() {
         console.log('=== CHAIN GRAVITY START ===');
         console.log('Current board before chain gravity:', [...this.board]);
-        this.processChainGravity(0);
+        await this.processChainGravity(0);
     }
     
-    processChainGravity(chainCount) {
+    async processChainGravity(chainCount) {
         if (chainCount >= 10) {
             console.log('Chain gravity limit reached (10 times)');
             return;
@@ -1103,70 +1292,103 @@ class TicTacToe {
         console.log(`Board state at chain ${chainCount + 1}:`, [...this.board]);
         
         // 三つ並びをチェック
-        const hasRemovals = this.checkAndRemoveThrees();
+        const hasRemovals = await this.checkAndRemoveThrees();
+        console.log(`Chain gravity ${chainCount + 1}: hasRemovals = ${hasRemovals}`); // デバッグログ追加
         
         if (hasRemovals) {
             console.log(`${chainCount + 1}回目: 三つ並びを検出、削除処理開始`); // デバッグ用
             
             // 削除アニメーション完了を待ってから連鎖重力を適用
-            setTimeout(async () => {
-                console.log(`${chainCount + 1}回目: 連鎖重力で空白を埋める（方向: ${this.lastGravityDirection}）`); // デバッグ用
-                
-                try {
-                // 連鎖重力で空白を埋める（重力を使った方向と同じ）
-                    await this.fillEmptySpacesWithDirection(this.lastGravityDirection);
+            return new Promise(resolve => {
+                setTimeout(async () => {
+                    console.log(`${chainCount + 1}回目: 連鎖重力で空白を埋める（方向: ${this.lastGravityDirection}）`); // デバッグ用
+                    console.log(`Chain gravity ${chainCount + 1}: lastGravityDirection before fillEmptySpaces = ${this.lastGravityDirection}`); // デバッグログ追加
                     
-                    // ボード表示を更新
-                    this.updateBoardDisplay();
-                    
-                    // 連鎖重力後の整合性チェック
-                    const currentOCount = this.board.filter(cell => cell === 'o').length;
-                    const currentXCount = this.board.filter(cell => cell === 'x').length;
-                    console.log(`Chain gravity ${chainCount + 1} - Current piece count - O: ${currentOCount}, X: ${currentXCount}`);
-                    
-                    // ボードの整合性を再確認
-                    if (this.board.some(cell => cell !== '' && cell !== 'o' && cell !== 'x')) {
-                        console.error(`Chain gravity ${chainCount + 1} - Invalid board state detected!`);
-                        console.error('Board contains invalid values:', this.board);
-                        return;
-                    }
+                    try {
+                    // 連鎖重力で空白を埋める（重力を使った方向と同じ）
+                        await this.fillEmptySpacesWithDirection(this.lastGravityDirection);
                         
-                        // 最優先で四つ以上並びの判定（勝利/ドロー）
-                        const oWins = this.checkWinnerForPlayer('o');
-                        const xWins = this.checkWinnerForPlayer('x');
-                    
-                    console.log(`Chain gravity ${chainCount + 1} - Win check results - O: ${oWins}, X: ${xWins}`);
+                        // ボード表示を更新
                         
-                        if (oWins && xWins) {
-                            // 両方とも四つ以上並んでいる場合、ドロー
-                            console.log('連鎖重力中にドローを検出');
-                            this.endGame(true, '重力で両者とも四つ以上並んだため、引き分けです！');
-                            return;
-                        } else if (oWins) {
-                            console.log('連鎖重力中に〇の勝利を検出');
-                            this.endGame(false, '〇が重力で四つ以上並んで勝ちました！');
-                            return;
-                        } else if (xWins) {
-                            console.log('連鎖重力中に✕の勝利を検出');
-                            this.endGame(false, '✕が重力で四つ以上並んで勝ちました！');
+                        // 連鎖重力後の整合性チェック
+                        const currentOCount = this.board.filter(cell => cell === 'o').length;
+                        const currentXCount = this.board.filter(cell => cell === 'x').length;
+                        console.log(`Chain gravity ${chainCount + 1} - Current piece count - O: ${currentOCount}, X: ${currentXCount}`);
+                        
+                        // ボードの整合性を再確認
+                        if (this.board.some(cell => cell !== '' && cell !== 'o' && cell !== 'x')) {
+                            console.error(`Chain gravity ${chainCount + 1} - Invalid board state detected!`);
+                            console.error('Board contains invalid values:', this.board);
+                            resolve(); // エラー時はresolveしてPromiseを終了
                             return;
                         }
+                            
+                            // 最優先で四つ以上並びの判定（勝利/ドロー）
+                            const oWins = this.checkWinnerForPlayer('o');
+                            const xWins = this.checkWinnerForPlayer('x');
                         
-                        // 四つ以上並びがない場合のみ、次の連鎖をチェック
-                        console.log(`${chainCount + 1}回目: 四つ以上並びなし、次の連鎖をチェック`);
-                        this.processChainGravity(chainCount + 1);
-                    
-                } catch (error) {
-                    console.error(`Chain gravity ${chainCount + 1} error:`, error);
-                }
-            }, 1200); // もっともっともっともっとゆっくりに調整
+                        console.log(`Chain gravity ${chainCount + 1} - Win check results - O: ${oWins}, X: ${xWins}`);
+                            
+                            if (oWins && xWins) {
+                                // 両方とも四つ以上並んでいる場合、ドロー
+                                console.log('連鎖重力中にドローを検出');
+                                this.hideLoadingIndicator(); // ローディングインジケーターを非表示
+                                this.endGame(true);
+                                this.gameActive = false; // ゲームを終了
+                                resolve(); // ゲーム終了時はresolveしてPromiseを終了
+                                return;
+                            } else if (oWins) {
+                                console.log('連鎖重力中に〇の勝利を検出');
+                                // 重力では手番側が負ける可能性があるため、実際の勝者に基づき明示的にメッセージを表示
+                                // ローディングはここで消さず、endGame内で即時表示の直前に消す
+                                this.endGame(false, '〇が勝ちました！', true);
+                                this.gameActive = false; // ゲームを終了
+                                resolve(); // ゲーム終了時はresolveしてPromiseを終了
+                                return;
+                            } else if (xWins) {
+                                console.log('連鎖重力中に✕の勝利を検出');
+                                // 重力では手番側が負ける可能性があるため、実際の勝者に基づき明示的にメッセージを表示
+                                // ローディングはここで消さず、endGame内で即時表示の直前に消す
+                                this.endGame(false, '✕が勝ちました！', true);
+                                this.gameActive = false; // ゲームを終了
+                                resolve(); // ゲーム終了時はresolveしてPromiseを終了
+                                return;
+                            }
+                            
+                            // 四つ以上並びがない場合のみ、次の連鎖をチェック
+                            console.log(`${chainCount + 1}回目: 四つ以上並びなし、次の連鎖をチェック`);
+                            
+                            // ここに0.5秒の遅延を入れる
+                            await new Promise(resolveInner => setTimeout(() => { // await new Promiseでラップ
+                                this.processChainGravity(chainCount + 1).then(resolveInner); // then(resolveInner)を追加
+                            }, 500)); // 0.5秒の遅延
+                        
+                    } catch (error) {
+                        console.error(`Chain gravity ${chainCount + 1} error:`, error);
+                    } finally {
+                        resolve(); // 処理完了後、Promiseを解決
+                    }
+                }, 300); // 重力後の連鎖重力は0.3秒の遅延に調整
+            }); // PromiseでラップしたsetTimeoutの終わり
         } else {
             console.log(`連鎖重力終了: ${chainCount}回の処理を完了`); // デバッグ用
             console.log('Final board state:', [...this.board]);
+            
+            // ここから手番変更とCPUの手実行のロジックを削除します
+            // if (this.gameActive) { // ゲームが終了していない場合のみ
+            //     this.switchPlayer();
+            //     this.updateStatus();
+            //     this.updateGravityButton();
+            //     
+            //     if (this.isCpuMode && this.currentPlayer === this.cpuPlayer) {
+            //         setTimeout(() => this.makeCpuMove(), 500);
+            //     }
+            // }
         }
     }
     
     async fillEmptySpacesWithDirection(direction) {
+        console.log(`=== FILL EMPTY SPACES START: ${direction} ===`); // デバッグログ追加
         console.log(`空白を埋める重力を適用（方向: ${direction}）`); // デバッグ用
         
         // 現在の盤面をコピー
@@ -1253,7 +1475,8 @@ class TicTacToe {
             console.error('元のボード:', currentBoard);
             console.error('新しいボード:', newBoard);
             // エラーの場合は処理を中止
-            return;
+            throw new Error("Chain gravity resulted in piece count mismatch (total pieces).");
+            // return; // 例外をスローするので不要
         }
         
         // 各プレイヤーのコマ数もチェック
@@ -1270,7 +1493,8 @@ class TicTacToe {
             console.error('〇: 元', originalOCount, '→ 新', newOCount);
             console.error('✕: 元', originalXCount, '→ 新', newXCount);
             // エラーの場合は処理を中止
-            return;
+            throw new Error("Chain gravity resulted in piece count mismatch (player pieces).");
+            // return; // 例外をスローするので不要
         }
         
         // 移動アニメーションを実行
@@ -1292,8 +1516,8 @@ class TicTacToe {
             console.error('連鎖重力完了後に無効なボード状態を検出！');
             console.error('Board contains invalid values:', this.board);
             // エラーの場合は元のボードに戻す
-            this.board = [...currentBoard];
-            return;
+            throw new Error("Chain gravity resulted in invalid board state after completion.");
+            // this.board = [...currentBoard]; // 例外をスローするので不要
         }
         
         if (finalOCount !== originalOCount || finalXCount !== originalXCount) {
@@ -1301,10 +1525,13 @@ class TicTacToe {
             console.error('〇: 元', originalOCount, '→ 最終', finalOCount);
             console.error('✕: 元', originalXCount, '→ 最終', finalXCount);
             // エラーの場合は元のボードに戻す
-            this.board = [...currentBoard];
+            throw new Error("Chain gravity resulted in piece count mismatch (player pieces) after completion.");
+            // this.board = [...currentBoard]; // 例外をスローするので不要
         }
         
         console.log('連鎖重力完了 - ボード整合性確認完了');
+        this.updateBoardDisplay(); // 連鎖重力処理の最後にUIを完全に更新
+        console.log(`=== FILL EMPTY SPACES END: ${direction} ===`); // デバッグログ追加
     }
     
     updateCell(index) {
@@ -1320,6 +1547,8 @@ class TicTacToe {
     }
     
     checkWinner() {
+        console.log('=== CHECKING WINNER (2P Mode) ==='); // 2Pモードの勝利判定デバッグログを追加
+        console.log('Current board state:', [...this.board]);
         // 四つ以上並んだ場合の勝利判定
         const directions = [
             [1, 0],   // 右
@@ -1332,17 +1561,21 @@ class TicTacToe {
             for (let col = 0; col < 6; col++) {
                 const index = row * 6 + col;
                 if (this.board[index] === '') continue;
+                const player = this.board[index]; // 勝利判定対象のプレイヤー
+                console.log(`Checking index ${index} (${row}, ${col}) for player ${player}`); // 追加
                 
                 for (let [dx, dy] of directions) {
                     let count = 1;
+                    let positions = [index]; // 勝利ラインのコマを追跡
                     let x = col + dx;
                     let y = row + dy;
                     
                     // 正方向にカウント
                     while (x >= 0 && x < 6 && y >= 0 && y < 6) {
                         const nextIndex = y * 6 + x;
-                        if (this.board[nextIndex] === this.board[index]) {
+                        if (this.board[nextIndex] === player) { // 同じ種類のコマであることのみチェック
                             count++;
+                            positions.push(nextIndex);
                             x += dx;
                             y += dy;
                         } else {
@@ -1350,178 +1583,105 @@ class TicTacToe {
                         }
                     }
                     
-                    // 負方向にカウント
+                    // 負方向にカウント（勝利判定には不要だが、debugWinningLineに合わせて追加）
                     x = col - dx;
                     y = row - dy;
                     while (x >= 0 && x < 6 && y >= 0 && y < 6) {
                         const nextIndex = y * 6 + x;
-                        if (this.board[nextIndex] === this.board[index]) {
+                        if (this.board[nextIndex] === player) { // 同じ種類のコマであることのみチェック
                             count++;
+                            positions.push(nextIndex);
                             x -= dx;
                             y -= dy;
                         } else {
                             break;
                         }
                     }
-                    
+
                     // 四つ以上並んでいれば勝利
                     if (count >= 4) {
+                        console.log(`WINNING LINE DETECTED in 2P mode! Player: ${player}`);
+                        console.log(`Direction: [${dx}, ${dy}]`);
+                        console.log(`Count: ${count}`);
+                        console.log(`Positions: ${positions}`);
+                        console.log(`Starting position: row=${row}, col=${col}, index=${index}`);
                         return true;
                     }
                 }
             }
         }
+        console.log('No winning line found in 2P mode');
         return false;
     }
     
-    checkAndRemoveThrees() {
-        console.log('=== CHECKING AND REMOVING THREES ===');
-        console.log('Board before three removal:', [...this.board]);
-        
-        const directions = [
-            [1, 0],   // 右
-            [0, 1],   // 下
-            [1, 1],   // 右下
-            [1, -1]   // 右上
-        ];
-        
-        const cellsToRemove = new Set();
-        
-        for (let row = 0; row < 6; row++) {
-            for (let col = 0; col < 6; col++) {
-                const index = row * 6 + col;
-                if (this.board[index] === '') continue;
-                
-                for (let [dx, dy] of directions) {
-                    let count = 1;
-                    let positions = [index];
-                    let x = col + dx;
-                    let y = row + dy;
-                    
-                    // 正方向にカウント
-                    while (x >= 0 && x < 6 && y >= 0 && y < 6) {
-                        const nextIndex = y * 6 + x;
-                        if (this.board[nextIndex] === this.board[index]) {
-                            count++;
-                            positions.push(nextIndex);
-                            x += dx;
-                            y += dy;
-                        } else {
-                            break;
-                        }
-                    }
-                    
-                    // 負方向にカウント
-                    x = col - dx;
-                    y = row - dy;
-                    while (x >= 0 && x < 6 && y >= 0 && y < 6) {
-                        const nextIndex = y * 6 + x;
-                        if (this.board[nextIndex] === this.board[index]) {
-                            count++;
-                            positions.push(nextIndex);
-                            x -= dx;
-                            y -= dy;
-                        } else {
-                            break;
-                        }
-                    }
-                    
-                    // ちょうど三つ並んでいる場合、削除対象に追加
-                    if (count === 3) {
-                        console.log(`Three-in-a-row found: ${this.board[index]} at positions:`, positions);
-                        positions.forEach(pos => cellsToRemove.add(pos));
-                    }
-                }
-            }
-        }
-        
-        // 三つ並んだセルを削除
-        if (cellsToRemove.size > 0) {
-            console.log(`Removing ${cellsToRemove.size} cells in three-in-a-row pattern`);
-            console.log('Cells to remove:', Array.from(cellsToRemove));
-            
-            // 削除前のコマ数を記録
-            const beforeOCount = this.board.filter(cell => cell === 'o').length;
-            const beforeXCount = this.board.filter(cell => cell === 'x').length;
-            console.log(`Before removal - O: ${beforeOCount}, X: ${beforeXCount}`);
-            
-            this.removeCells(Array.from(cellsToRemove));
-            
-            // 削除処理完了後の整合性チェック
-            setTimeout(() => {
-                const afterOCount = this.board.filter(cell => cell === 'o').length;
-                const afterXCount = this.board.filter(cell => cell === 'x').length;
-                console.log(`After removal check - O: ${afterOCount}, X: ${afterXCount}`);
-                
-                // ボードの整合性を確認
-                if (this.board.some(cell => cell !== '' && cell !== 'o' && cell !== 'x')) {
-                    console.error('Invalid board state after three removal!');
-                    console.error('Board contains invalid values:', this.board);
-                }
-                
-                console.log('Board after three removal:', [...this.board]);
-            }, 1200); // もっともっともっともっとゆっくりに調整
-            
-            return true;
-        }
-        
-        console.log('No three-in-a-row patterns found');
-        return false;
-    }
-    
-    removeCells(indices) {
+    async removeCells(indices) {
         console.log(`=== REMOVING CELLS ===`);
         console.log('Indices to remove:', indices);
         console.log('Board before removal:', [...this.board]);
-        
+
         // 削除前のコマ数を記録
         const beforeOCount = this.board.filter(cell => cell === 'o').length;
         const beforeXCount = this.board.filter(cell => cell === 'x').length;
         console.log(`Before removal - O: ${beforeOCount}, X: ${beforeXCount}`);
-        
+
         // 削除対象のコマの種類を記録
         const piecesToRemove = indices.map(index => this.board[index]);
         console.log('Pieces to remove:', piecesToRemove);
-        
+
         // 即座にボードから削除（表示は後で更新）
         indices.forEach(index => {
-            this.board[index] = '';
+            const piece = this.board[index];
+            if (piece === 'o') {
+                this.oPieces--;
+            } else if (piece === 'x') {
+                this.xPieces--;
+            }
+            this.board[index] = ''; // ここでボードの状態とピース数をすぐに更新
         });
-        
+
         // 削除後のコマ数を確認
         const afterOCount = this.board.filter(cell => cell === 'o').length;
         const afterXCount = this.board.filter(cell => cell === 'x').length;
         console.log(`After removal - O: ${afterOCount}, X: ${afterXCount}`);
-        
+
         // 削除されたコマ数が正しいかチェック
         const expectedOCount = beforeOCount - piecesToRemove.filter(piece => piece === 'o').length;
         const expectedXCount = beforeXCount - piecesToRemove.filter(piece => piece === 'x').length;
-        
+
         if (afterOCount !== expectedOCount || afterXCount !== expectedXCount) {
             console.error('REMOVAL ERROR: Piece count mismatch after removal!');
             console.error('Expected - O:', expectedOCount, 'X:', expectedXCount);
             console.error('Actual - O:', afterOCount, 'X:', afterXCount);
             console.error('Board after removal:', [...this.board]);
         }
-        
-        // アニメーション表示を更新
-        indices.forEach(index => {
-            const cell = document.querySelector(`[data-index="${index}"]`);
-            if (cell) {
-            cell.classList.add('removing');
-            
+
+        return new Promise(resolve => {
+            // アニメーション表示を更新
+            indices.forEach(index => {
+                const cell = document.querySelector(`[data-index="${index}"]`);
+                if (cell) {
+                    cell.classList.add('removing');
+                }
+            });
+
+            // アニメーション完了を待ってからDOMを更新し、Promiseを解決
             setTimeout(() => {
-                cell.textContent = '';
-                cell.classList.remove('o', 'x', 'removing');
-                cell.style.background = '';
-                cell.style.boxShadow = '';
-                }, 600); // もっともっともっともっとゆっくりに調整
-            }
+                indices.forEach(index => {
+                    const cell = document.querySelector(`[data-index="${index}"]`);
+                    if (cell) {
+                        cell.textContent = '';
+                        cell.classList.remove('o', 'x', 'removing', 'highlight-for-removal'); // ハイライトもここで削除
+                        cell.style.background = '';
+                        cell.style.boxShadow = '';
+                    }
+                });
+                this.updateBoardDisplay(); // コマが削除された後にUIを完全に更新
+                console.log('=== CELL REMOVAL COMPLETED ===');
+                resolve();
+            }, 600); // 元のアニメーション速度に戻す
         });
-        
-        console.log('=== CELL REMOVAL COMPLETED ===');
     }
-    
+
     checkDraw() {
         return this.board.every(cell => cell !== '');
     }
@@ -1549,7 +1709,9 @@ class TicTacToe {
         }
     }
     
-    endGame(isDraw = false, customMessage = '') {
+    endGame(isDraw = false, customMessage = '', showImmediately = false) {
+        console.log('=== END GAME START ==='); // デバッグログ追加
+        console.log('endGame called with isDraw:', isDraw, 'customMessage:', customMessage, 'showImmediately:', showImmediately);
         this.gameActive = false;
         
         if (isDraw) {
@@ -1562,35 +1724,47 @@ class TicTacToe {
             // 勝利ラインをハイライト表示
             this.highlightWinningLine();
             
-            this.showWinnerModal(message);
+            if (showImmediately) {
+                // 重力勝利時: ローディングを消して即時に勝利モーダル表示
+                this.hideLoadingIndicator();
+                this.showWinnerModal(message);
+            } else {
+                // 0.5秒待ってから勝利モーダルを表示
+                setTimeout(() => {
+                    this.showWinnerModal(message);
+                }, 500); // 0.5秒の遅延
+            }
         }
+        // ゲーム終了時にゲームボードのクリックを無効にし、「もう一度プレイ」ボタンを表示
+        // document.getElementById('game-board').classList.add('disabled');
+        // document.getElementById('game-end-controls').style.display = 'flex'; // もう一度プレイボタンを表示
     }
     
     showWinnerModal(message) {
         const modal = document.getElementById('winner-modal');
         const winnerText = document.getElementById('winner-text');
         
+        console.log('showWinnerModal called with message:', message);
+        if (!modal) {
+            console.error('ERROR: winner-modal element not found!');
+            return;
+        }
+        if (!winnerText) {
+            console.error('ERROR: winner-text element not found!');
+            return;
+        }
         winnerText.textContent = message;
         modal.style.display = 'flex';
-        
-        const playAgainBtn = document.getElementById('play-again-btn');
-    if (playAgainBtn) {
-        // 既存のイベントリスナーを削除
-        playAgainBtn.replaceWith(playAgainBtn.cloneNode(true));
-        
-        // 新しいイベントリスナーを設定
-        document.getElementById('play-again-btn').addEventListener('click', () => {
-            console.log('もう一度プレイボタンがクリックされました');
-            this.playAgain();
-        });
+        console.log('winner-modal display set to flex. Current display:', modal.style.display);
     }
-}
     
     hideWinnerModal() {
         document.getElementById('winner-modal').style.display = 'none';
     }
     
     highlightWinningLine() {
+        console.log('=== HIGHLIGHTING WINNING LINE ===');
+        console.log('Current board state:', [...this.board]);
         const directions = [
             [1, 0],   // 右
             [0, 1],   // 下
@@ -1602,6 +1776,8 @@ class TicTacToe {
             for (let col = 0; col < 6; col++) {
                 const index = row * 6 + col;
                 if (this.board[index] === '') continue;
+                const player = this.board[index]; // 勝利判定対象のプレイヤー
+                console.log(`Highlight check at index ${index} (${row}, ${col}) for player ${player}`); // 追加
                 
                 for (let [dx, dy] of directions) {
                     let count = 1;
@@ -1612,7 +1788,7 @@ class TicTacToe {
                     // 正方向にカウント
                     while (x >= 0 && x < 6 && y >= 0 && y < 6) {
                         const nextIndex = y * 6 + x;
-                        if (this.board[nextIndex] === this.board[index]) {
+                        if (this.board[nextIndex] === player) { // 同じ種類のコマであることのみチェック
                             count++;
                             positions.push(nextIndex);
                             x += dx;
@@ -1627,7 +1803,7 @@ class TicTacToe {
                     y = row - dy;
                     while (x >= 0 && x < 6 && y >= 0 && y < 6) {
                         const nextIndex = y * 6 + x;
-                        if (this.board[nextIndex] === this.board[index]) {
+                        if (this.board[nextIndex] === player) { // 同じ種類のコマであることのみチェック
                             count++;
                             positions.push(nextIndex);
                             x -= dx;
@@ -1639,7 +1815,8 @@ class TicTacToe {
                     
                     // 四つ以上並んでいる場合、ハイライト
                     if (count >= 4) {
-                        console.log(`勝利ラインを発見: ${this.board[index]}が${count}個並んでいます`);
+                        console.log(`勝利ラインを発見（ハイライト）: ${player}が${count}個並んでいます`);
+                        console.log('Highlight positions:', positions);
                         positions.forEach(pos => {
                             const cell = document.querySelector(`[data-index="${pos}"]`);
                             if (cell) {
@@ -1658,6 +1835,7 @@ class TicTacToe {
                 }
             }
         }
+        console.log('No winning line found for highlight'); // 追加
     }
     
     resetGame() {
@@ -1676,6 +1854,7 @@ class TicTacToe {
         // CPUモードの場合は設定を維持
         if (this.isCpuMode) {
             // currentPlayerは既に設定済みなので変更しない
+            this.currentPlayer = this.initialStartingPlayer || 'o'; // 初期先攻プレイヤーでリセット
             console.log('resetGame - CPU mode, currentPlayer:', this.currentPlayer);
         } else {
             // 2人対戦モードの場合は通常通り'o'に設定
@@ -1686,8 +1865,12 @@ class TicTacToe {
         this.clearBoard();
         this.updateStatus();
         this.updateGravityButton();
-        this.hideWinnerModal();
+        this.hideWinnerModal(); // ゲームリセット時にもモーダルを確実に非表示にする
         document.getElementById('gravity-directions').style.display = 'none';
+        
+        // ゲームリセット時にゲームボードのクリックを有効にし、「もう一度プレイ」ボタンを隠す
+        // document.getElementById('game-board').classList.remove('disabled');
+        // document.getElementById('game-end-controls').style.display = 'none'; // もう一度プレイボタンを隠す
         
         // デバッグ用：リセット後の状態を確認
         console.log('resetGame completed:', {
@@ -1701,11 +1884,11 @@ class TicTacToe {
     }
     
     playAgain() {
-        // CPUモードでCPUが先行だった場合の処理
-        if (this.isCpuMode && this.cpuPlayer === 'x') {
-            this.currentPlayer = 'x'; // CPUを先手に設定
-            console.log('CPU mode reset - CPU goes first');
-        }
+        // CPUモードでCPUが先行だった場合の処理 (resetGameで処理されるため削除)
+        // if (this.isCpuMode && this.cpuPlayer === 'x') {
+        //     this.currentPlayer = 'x'; // CPUを先手に設定
+        //     console.log('CPU mode reset - CPU goes first');
+        // }
         
         this.resetGame(); // ゲームをリセット
         
@@ -1927,7 +2110,7 @@ class TicTacToe {
                 
                 for (let [dx, dy] of directions) {
                     let count = 1;
-                    let positions = [index];
+                    let positions = [index]; // positionsを常に定義
                     let x = col + dx;
                     let y = row + dy;
                     
@@ -2122,6 +2305,184 @@ class TicTacToe {
         }
         
         return potentialMoves;
+    }
+
+    async checkAndRemoveThrees() {
+        console.log('=== CHECKING AND REMOVING THREES ===');
+        console.log('Board before three removal:', [...this.board]);
+        
+        const directions = [
+            [1, 0],   // 右
+            [0, 1],   // 下
+            [1, 1],   // 右下
+            [1, -1]   // 右上
+        ];
+        
+        const cellsToRemove = new Set();
+        
+        for (let row = 0; row < 6; row++) {
+            for (let col = 0; col < 6; col++) {
+                const index = row * 6 + col;
+                if (this.board[index] === '') continue;
+                console.log(`Checking index ${index} (${row}, ${col}) for player ${this.board[index]}`); // 追加
+                
+                for (let [dx, dy] of directions) {
+                    console.log(`  Direction: [${dx}, ${dy}]`); // 追加
+                    let count = 1;
+                    let positions = [index];
+                    let x = col + dx;
+                    let y = row + dy;
+                    
+                    // 正方向にカウント
+                    while (x >= 0 && x < 6 && y >= 0 && y < 6) {
+                        const nextIndex = y * 6 + x;
+                        if (this.board[nextIndex] === this.board[index] && this.board[index] !== '') {
+                            count++;
+                            positions.push(nextIndex);
+                            x += dx;
+                            y += dy;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    console.log(`    Positive count: ${count}, positions:`, positions); // 追加
+                    
+                    // 負方向にカウント
+                    let negCount = 0; // 負方向のカウントを初期化
+                    let negPositions = [];
+                    x = col - dx;
+                    y = row - dy;
+                    while (x >= 0 && x < 6 && y >= 0 && y < 6) {
+                        const nextIndex = y * 6 + x;
+                        if (this.board[nextIndex] === this.board[index] && this.board[index] !== '') {
+                            negCount++;
+                            negPositions.push(nextIndex);
+                            x -= dx;
+                            y -= dy;
+                        } else {
+                            break;
+                        }
+                    }
+                    
+                    console.log(`    Negative count: ${negCount}, negPositions:`, negPositions); // 追加
+                    
+                    // 合計でちょうど三つ並んでいる場合、削除対象に追加
+                    // ただし、すでにpositionsに含まれているものは追加しない（重複防止）
+                    const totalCount = count + negCount;
+                    console.log(`    Total count: ${totalCount}`); // 追加
+                    if (totalCount === 3) {
+                        console.log(`Three-in-a-row found: ${this.board[index]} at positions:`, [...positions, ...negPositions]);
+                        [...positions, ...negPositions].forEach(pos => cellsToRemove.add(pos));
+                    }
+                }
+            }
+        }
+        
+        // 三つ並んだセルを削除
+        if (cellsToRemove.size > 0) {
+            console.log(`Removing ${cellsToRemove.size} cells in three-in-a-row pattern`);
+            console.log('Cells to remove:', Array.from(cellsToRemove));
+
+            // 削除対象のセルをハイライト表示
+            cellsToRemove.forEach(index => {
+                const cell = document.querySelector(`[data-index="${index}"]`);
+                if (cell) {
+                    cell.classList.add('highlight-for-removal');
+                }
+            });
+
+            // ハイライト表示後、少し待ってから削除処理を開始
+            await this.sleep(500); // ハイライト表示の遅延（0.5秒に調整）
+
+            await this.removeCells(Array.from(cellsToRemove)); // awaitを追加
+
+            // 削除処理完了後の整合性チェック
+            // removeCells内で既にPromiseが解決されるため、ここでは不要
+            const afterOCount = this.board.filter(cell => cell === 'o').length;
+            const afterXCount = this.board.filter(cell => cell === 'x').length;
+            console.log(`After removal check - O: ${afterOCount}, X: ${afterXCount}`);
+
+            // ボードの整合性を確認
+            if (this.board.some(cell => cell !== '' && cell !== 'o' && cell !== 'x')) {
+                console.error('Invalid board state after three removal!');
+                console.error('Board contains invalid values:', this.board);
+            }
+
+            console.log('Board after three removal:', [...this.board]);
+
+            return true;
+        }
+
+        console.log('No three-in-a-row patterns found');
+        return false;
+    }
+
+    showLoadingIndicator() {
+        document.getElementById('loading-indicator').style.display = 'flex';
+    }
+
+    hideLoadingIndicator() {
+        document.getElementById('loading-indicator').style.display = 'none';
+    }
+
+    // 相手が重力を使って勝利できる場合をコマで防ぐ手を探す
+    findMoveToBlockOpponentGravityWin() {
+        console.log('=== FIND MOVE TO BLOCK OPPONENT GRAVITY WIN ===');
+        console.log('Current board state:', [...this.board]);
+        
+        // 相手が重力を使用済みであれば、この防御は不要
+        if (this.gravityUsed[this.humanPlayer]) {
+            console.log('Opponent has already used gravity. No need to block gravity win.');
+            return -1;
+        }
+        
+        const directions = ['up', 'down', 'left', 'right'];
+        const emptyCells = [];
+        for (let i = 0; i < 36; i++) {
+            if (this.board[i] === '') {
+                emptyCells.push(i);
+            }
+        }
+        
+        if (emptyCells.length === 0) {
+            console.log('No empty cells to place a blocking piece.');
+            return -1;
+        }
+        
+        // 各空きマスにCPUのコマを置いて、相手の重力勝利を防げるかシミュレート
+        for (const blockMove of emptyCells) {
+            console.log(`Testing blocking move at position: ${blockMove}`);
+            
+            // 一時的にCPUのコマを配置
+            this.board[blockMove] = this.cpuPlayer;
+            
+            let canBlockAllGravityWins = true;
+            for (const direction of directions) {
+                // CPUがコマを置いた後の盤面で、相手が重力を使った場合のシミュレート
+                // このシミュレーションはthis.boardではなく、コピーされたボードに対して行うべき
+                // ここではthis.boardが一時的に変更されているので、それを元にsimulateGravityを呼ぶ
+                const simulatedBoardAfterCpuBlockAndOpponentGravity = this.simulateGravity(direction);
+                
+                // シミュレートされた盤面で相手が勝利するかチェック
+                if (this.checkWinnerForSimulatedBoard(simulatedBoardAfterCpuBlockAndOpponentGravity, this.humanPlayer)) {
+                    console.log(`Opponent can still win with gravity ${direction} even with CPU blocking at ${blockMove}.`);
+                    canBlockAllGravityWins = false;
+                    break;
+                }
+            }
+            
+            // 元に戻す
+            this.board[blockMove] = '';
+            
+            if (canBlockAllGravityWins) {
+                console.log(`Found a move to block all opponent gravity wins at: ${blockMove}`);
+                return blockMove;
+            }
+        }
+        
+        console.log('No move found to block opponent gravity wins.');
+        return -1;
     }
 }
 
