@@ -147,7 +147,7 @@ body {
 .game-header {
     width: 100%;
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between; /* 左:戻る 右:ヘルプ */
     align-items: center;
     margin-bottom: 2rem;
 }
