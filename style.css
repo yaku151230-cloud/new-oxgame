@@ -915,17 +915,21 @@ body {
     }
     
     .game-screen, .cpu-selection-screen {
-        padding: 0rem;
-        gap: 0rem;
+        padding: 2rem;
+        gap: 2rem;
     }
     
     .gravity-section {
         margin-bottom: 2rem;
-        margin-top: 0;
+        margin-top: 2rem;
     }
     
     .game-board {
         max-width: 90vw;
+        padding: 0rem;
+        gap: 0rem;
+        margin-bottom: 0rem;
+        margin-top: 0rem;
     }
     
     .cell {
