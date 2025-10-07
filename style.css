@@ -77,6 +77,26 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-weight: bold;
+    line-height: 1.1;
+    position: relative;
+}
+/* タイトル内の装飾 */
+.title-new {
+    display: inline-block;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 2rem; /* 小さく */
+    transform: translateX(-80px); /* 左にずらす */
+}
+
+.title-main {
+    display: inline-block;
+}
+
+/* タイトル全体を少し上に */
+.main-content {
+    margin-top: 20px; /* 全体を上へ少し移動 */
 }
 
 .game-mode-buttons {
@@ -315,6 +335,12 @@ body {
     z-index: 5;
 }
 
+.cell.highlight-for-removal {
+    border: 3px solid #ffcc00; /* 黄色の枠線 */
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.8); /* 黄色の光 */
+    transform: scale(1.05); /* 少し拡大 */
+}
+
 @keyframes winningPulse {
     0% {
         transform: scale(1.05);
@@ -527,6 +553,8 @@ body {
     max-width: 600px;
     width: 90%;
     position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .modal-header {
@@ -624,59 +652,81 @@ body {
 
 /* 勝者モーダル */
 .winner-modal {
-    display: none;
+    display: none; /* 初期状態では非表示。必要時はJSでdisplay: flexにする */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.05); /* さらに透明に */
-    z-index: 1000;
-    align-items: center;
+    background: rgba(0, 0, 0, 0.2); /* 少し透明度を消す */
+    display: flex;
     justify-content: center;
+    align-items: center;
+    z-index: 10000; /* 最前面に表示を確実にするため、さらに高い値に設定 */
+    pointer-events: auto; /* モーダル全体でクリックイベントを有効にする */
+    color: white;
+    font-size: 1.8em;
 }
 
 .winner-modal .modal-content {
-    background: rgba(255, 255, 255, 0.3); /* さらに透明に */
-    backdrop-filter: blur(2px); /* 背景のぼかしをさらに軽く */
-    padding: 2rem;
-    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.5); /* コンテンツ部分も少し透明度を消す */
+    padding: 30px 50px;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* シャドウも元の強さに戻す */
     text-align: center;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    animation: modalSlideIn 0.3s ease-out;
+    transform: scale(0.9);
+    animation: modal-appear 0.3s ease-out forwards;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px;
-    border: 2px solid rgba(255, 255, 255, 0.2); /* 境界線もより透明に */
+    flex-direction: column; /* ボタンを縦に並べる */
+    gap: 15px; /* ボタン間のスペース */
+    align-items: center; /* ボタンを中央揃えにする */
+    z-index: 1001; /* モーダルコンテンツを最前面に */
+    pointer-events: auto; /* クリックイベントを有効にする */
 }
 
-.winner-modal .modal-content h2 {
-    margin-bottom: 1.5rem;
+.winner-modal h2 {
+    font-size: 0.8em; /* 文字サイズは維持 */
+    margin-bottom: 20px;
     color: #333;
-    font-size: 1.8rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* テキストの影を調整 */
-    font-weight: bold; /* テキストを太くして視認性向上 */
+}
+
+.winner-modal button {
+    display: inline-block; /* 幅がコンテンツに合わせるように変更 */
+    min-width: 120px; /* ボタンが小さくなりすぎないように最小幅を設定 */
+    padding: 8px 12px; /* パディングをさらに小さくしてボタン自体を小さく */
+    font-size: 0.8em; /* ボタンの文字サイズをさらに小さく */
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    pointer-events: auto; /* ボタン自体もクリックイベントを有効にする */
 }
 
 .winner-modal .play-again-btn {
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, rgba(78, 205, 196, 0.9), rgba(68, 160, 141, 0.9)); /* 透明度を調整 */
     color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 25px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .winner-modal .play-again-btn:hover {
+    background: linear-gradient(45deg, rgba(78, 205, 196, 0.98), rgba(68, 160, 141, 0.98)); /* ホバーでさらに濃く */
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
+
+.winner-modal .back-btn {
+    background: linear-gradient(45deg, rgba(255, 107, 107, 0.9), rgba(238, 90, 36, 0.9)); /* 透明度を調整 */
+    color: white;
+}
+
+.winner-modal .back-btn:hover {
+    background: linear-gradient(45deg, rgba(255, 107, 107, 0.98), rgba(238, 90, 36, 0.98)); /* ホバーでさらに濃く */
+    transform: translateY(-2px);
+}
+
+/* ゲーム終了後のコントロール (削除) */
+/* #game-end-controls { display: none; } */
+
+/* メインに戻るボタン（ゲーム画面内）(削除) */
+/* .game-header .back-btn { display: none; } */
 
 @keyframes modalSlideIn {
     from {
@@ -687,6 +737,39 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* ローディングインジケーター */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9998; /* 他のモーダルやオーバーレイよりは低く */
+    color: white;
+    font-size: 1.5em;
+    flex-direction: column;
+    display: none; /* デフォルトで非表示 */
+}
+
+.loading-spinner {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* レスポンシブデザイン */
@@ -711,6 +794,9 @@ body {
 
 @media (max-width: 600px) {
     /* スマホ用の縦長レイアウト最適化 */
+    .winner-modal {
+        display: none; /* スマホ初期表示では勝者モーダルを非表示にする */
+    }
     .main-screen {
         padding: 0;
         background: rgba(255, 255, 255, 0.95); /* 元の配色に戻す */
