@@ -43,8 +43,12 @@ class TicTacToe {
             });
         }
         
-        // ヘルプモーダルのイベント
+        // ヘルプモーダルのイベント（メイン・ゲーム両方）
         document.getElementById('help-btn').addEventListener('click', () => this.showHelpModal());
+        const helpBtnGame = document.getElementById('help-btn-game');
+        if (helpBtnGame) {
+            helpBtnGame.addEventListener('click', () => this.showHelpModal());
+        }
         document.getElementById('close-help-btn').addEventListener('click', () => this.hideHelpModal());
         
         // ヘルプモーダルの外側クリックで閉じる
