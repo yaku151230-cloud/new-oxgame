@@ -1038,8 +1038,8 @@ body {
         background: linear-gradient(45deg, #ff6b6b, #ee5a24); /* 元の配色に戻す */
         border: none; /* 元のスタイルに戻す */
         width: 50px;
-        height: 50px; /* 幅を少し広げる */
-        padding: 0.5rem 0.5rem;
+        height: 50px;
+        padding: 0; /* パディングを0にして完全な円に */
         font-size: 1.5rem;
         top: 1rem;
         right: 2rem;
@@ -1047,6 +1047,9 @@ body {
         font-weight: bold;
         position: fixed;
         border-radius: 50%;
-        box-sizing: border-box
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 }
