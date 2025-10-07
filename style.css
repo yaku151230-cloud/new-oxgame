@@ -1044,6 +1044,7 @@ body {
         right: 2rem;
         z-index: 10;
         font-weight: bold;
-        position: absolute
+        position: absolute;
+        border-radius: 50%;
     }
 }
