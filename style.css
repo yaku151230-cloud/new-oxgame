@@ -175,7 +175,7 @@ body {
     background: linear-gradient(45deg, #ff6b6b, #ee5a24); /* 元の配色に戻す */
     color: white;
     border: none;
-    padding: 0.6rem 1rem;
+    padding: 0.5rem;
     border-radius: 20px;
     font-size: 0.9rem;
     font-weight: 600;
