@@ -983,7 +983,7 @@ body {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 3rem; /* 間隔を広げる */
+        gap: 10rem; /* 間隔を広げる */
         justify-content: center; /* 中央寄せ */
     }
     
